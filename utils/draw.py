@@ -58,6 +58,33 @@ def draw_info(image, mode, number):
                         cv2.LINE_AA)
     return image
 
+def get_rectangle_landmark(image, hands):
+    landmark_angle = []
+
+    for hand in hands:
+        landmarks = hand.landmark
+        frame_height, frame_width, _ = image.shape
+
+        min_x, min_y = frame_width, frame_height
+        max_x, max_y = 0, 0
+
+        # iterasi setiap landmark pada tangan
+        for idh, landmark in enumerate(landmarks):
+            x = int(landmark.x * frame_width)
+            y = int(landmark.y * frame_height)
+
+            # Update min and max coordinates
+            min_x, min_y = min(min_x, x), min(min_y, y)
+            max_x, max_y = max(max_x, x), max(max_y, y)
+
+        # Simpan hasil min dan max koordinat
+        landmark_angle.append({'min': (min_x, min_y), 'max': (max_x, max_y)})
+
+        # Gambar kotak pada tangan
+        cv2.rectangle(image, (min_x, min_y), (max_x, max_y), (0, 255, 0), 2)
+
+    return landmark_angle
+
 def get_landmarks(image, hands):
     landmark_coors = []
 
