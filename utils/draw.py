@@ -91,12 +91,6 @@ def get_landmark_points(image, hands):
 
     return landmark_list
 
-import numpy as np
-import cv2
-
-import cv2
-import numpy as np
-
 def draw_hand_rect(image, hands, model, scaler, label_encoder):
     frame_height, frame_width, _ = image.shape
     for hand in hands:

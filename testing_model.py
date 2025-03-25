@@ -42,7 +42,7 @@ def main():
         if results.multi_hand_landmarks is not None:
             draw_hand_rect(debug_image, results.multi_hand_landmarks, svm_model, scaler, label_encoder)
 
-        cv2.imshow('Hand Pose Games Dataset Maker', debug_image)
+        cv2.imshow('Test Hand Pose Games', debug_image)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             cv2.destroyAllWindows()
