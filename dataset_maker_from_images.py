@@ -2,6 +2,7 @@ import cv2
 import csv
 import os
 import mediapipe as mp
+from utils.draw import get_landmark_points
 
 def main():
     hand_detector = mp.solutions.hands.Hands(
@@ -29,27 +30,11 @@ def main():
                 results = hand_detector.process(image_rgb)
 
                 if results.multi_hand_landmarks:
-                    landmark_list = get_landmarks(image, results.multi_hand_landmarks)
+                    landmark_list = get_landmark_points(image, results.multi_hand_landmarks)
                     writer.writerow([pose] + landmark_list)
 
         print("A block of files has been transformed into the dataset")
     print("Completed")
-
-def get_landmarks(image, hands):
-    landmark_list = []
-
-    for hand in hands:
-        landmarks = hand.landmark
-        frame_height, frame_width, _ = image.shape
-
-        # Iterate through landmarks
-        for landmark in landmarks:
-            x = int(landmark.x * frame_width)
-            y = int(landmark.y * frame_height)
-            landmark_list.append(x)
-            landmark_list.append(y)
-
-    return landmark_list
 
 if __name__ == '__main__':
     main()

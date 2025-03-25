@@ -1,14 +1,19 @@
 import copy
 import mediapipe as mp
+import joblib
+import numpy
 from utils.draw import *
 
 FONT = cv2.FONT_HERSHEY_SIMPLEX
+svm_model = joblib.load('./model/svm_model.pkl')
+scaler = joblib.load('./model/scaler.pkl')
+label_encoder = joblib.load('./model/label_encoder.pkl')
 
 
 def main():
     cap = cv2.VideoCapture(0)
     hand_detector = mp.solutions.hands.Hands(
-        max_num_hands=1
+        max_num_hands=2
     )
 
     mode = 0
@@ -27,7 +32,6 @@ def main():
 
         image = cv2.flip(image, 1)
         debug_image = copy.deepcopy(image)
-        saved_image = copy.deepcopy(image)
 
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
@@ -36,10 +40,8 @@ def main():
         image.flags.writeable = True
 
         if results.multi_hand_landmarks is not None:
-            _ = draw_landmark(debug_image, results.multi_hand_landmarks)
-            logging_image(number, mode, saved_image)
+            draw_hand_rect(debug_image, results.multi_hand_landmarks, svm_model, scaler, label_encoder)
 
-        debug_image = draw_info(debug_image, mode, number)
         cv2.imshow('Hand Pose Games Dataset Maker', debug_image)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):

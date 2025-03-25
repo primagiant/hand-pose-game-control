@@ -2,6 +2,7 @@ import cv2
 import csv
 import os
 import time
+import numpy as np
 
 FONT = cv2.FONT_HERSHEY_SIMPLEX
 
@@ -58,36 +59,85 @@ def draw_info(image, mode, number):
                         cv2.LINE_AA)
     return image
 
-def get_rectangle_landmark(image, hands):
-    landmark_angle = []
+import cv2
+
+def draw_predicted_infos(image, hand_class_predicted):
+    # Atur posisi dan tampilan teks
+    text = f'Prediksi: {hand_class_predicted}'
+    position = (20, 40)  # Koordinat x, y untuk menampilkan teks
+    font = cv2.FONT_HERSHEY_SIMPLEX  # Jenis font
+    font_scale = 1  # Ukuran font
+    color = (0, 255, 0)  # Warna teks (hijau)
+    thickness = 2  # Ketebalan teks
+
+    # Tambahkan teks ke gambar
+    cv2.putText(image, text, position, font, font_scale, color, thickness, cv2.LINE_AA)
+
+    return image
+
+
+def get_landmark_points(image, hands):
+    landmark_list = []
 
     for hand in hands:
         landmarks = hand.landmark
         frame_height, frame_width, _ = image.shape
 
-        min_x, min_y = frame_width, frame_height
-        max_x, max_y = 0, 0
-
-        # iterasi setiap landmark pada tangan
-        for idh, landmark in enumerate(landmarks):
+        for landmark in landmarks:
             x = int(landmark.x * frame_width)
             y = int(landmark.y * frame_height)
+            landmark_list.append(x)
+            landmark_list.append(y)
 
-            # Update min and max coordinates
-            min_x, min_y = min(min_x, x), min(min_y, y)
-            max_x, max_y = max(max_x, x), max(max_y, y)
+    return landmark_list
 
-        # Simpan hasil min dan max koordinat
-        landmark_angle.append({'min': (min_x, min_y), 'max': (max_x, max_y)})
+import numpy as np
+import cv2
 
-        # Gambar kotak pada tangan
+import cv2
+import numpy as np
+
+def draw_hand_rect(image, hands, model, scaler, label_encoder):
+    frame_height, frame_width, _ = image.shape
+    for hand in hands:
+        # Ambil koordinat landmark langsung sebagai array NumPy
+        landmarks = np.array([[int(l.x * frame_width), int(l.y * frame_height)] for l in hand.landmark])
+
+        # Dapatkan nilai min dan max
+        min_x, min_y = np.min(landmarks, axis=0)
+        max_x, max_y = np.max(landmarks, axis=0)
+
+        # Normalisasi koordinat
+        transformed_coordinates = landmarks - [min_x, min_y]
+        flattened_data = transformed_coordinates.flatten().reshape(1, -1)  # Bentuk (1, 42)
+
+        # Skalakan data dan prediksi kelas
+        scaled_data = scaler.transform(flattened_data)
+        predicted_label = model.predict(scaled_data)
+        predicted_class = label_encoder.inverse_transform(predicted_label)[0]
+
+        # Gambar bounding box
         cv2.rectangle(image, (min_x, min_y), (max_x, max_y), (0, 255, 0), 2)
 
-    return landmark_angle
+        # Tentukan posisi teks (letakkan di atas kiri kotak)
+        text_position = (min_x, min_y - 10) if min_y > 20 else (min_x, min_y + 20)
 
-def get_landmarks(image, hands):
-    landmark_coors = []
+        # Hitung ukuran teks
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = 0.6
+        thickness = 2
+        text_size, _ = cv2.getTextSize(f"{predicted_class}", font, font_scale, thickness)
+        text_w, text_h = text_size
 
+        # Gambar latar belakang teks (kotak hitam semi-transparan)
+        cv2.rectangle(image, (text_position[0], text_position[1] - text_h),
+                      (text_position[0] + text_w + 5, text_position[1] + 5), (0, 0, 0), -1)
+
+        # Tambahkan teks kelas prediksi di dalam bounding box
+        cv2.putText(image, f"{predicted_class}", text_position, font, font_scale, (255, 255, 255), thickness, cv2.LINE_AA)
+
+
+def draw_landmark(image, hands):
     for hand in hands:
         landmarks = hand.landmark
         frame_height, frame_width, _ = image.shape
@@ -207,5 +257,3 @@ def get_landmarks(image, hands):
         draw_line(image, middle_middle_coor, peak_middle_coor, (255, 200, 200))
         draw_line(image, middle_ring_coor, peak_ring_coor, (255, 200, 200))
         draw_line(image, middle_little_coor, peak_little_coor, (255, 200, 200))
-
-    return landmark_coors
