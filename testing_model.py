@@ -11,7 +11,7 @@ label_encoder = joblib.load('./model/label_encoder.pkl')
 
 
 def main():
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1)
     hand_detector = mp.solutions.hands.Hands(
         max_num_hands=2
     )
