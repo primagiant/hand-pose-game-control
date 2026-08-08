@@ -6,15 +6,12 @@ FONT = cv2.FONT_HERSHEY_SIMPLEX
 
 
 def main():
-    cap = cv2.VideoCapture(0)
-    hand_detector = mp.solutions.hands.Hands(
-        max_num_hands=1
-    )
+    cap = cv2.VideoCapture(1)
+    hand_detector = mp.solutions.hands.Hands(max_num_hands=2)
 
     mode = 0
 
     while True:
-
         # Process Key (ESC: end)
         key = cv2.waitKey(10)
         if key == 27:  # ESC
@@ -40,9 +37,9 @@ def main():
             logging_image(number, mode, saved_image)
 
         debug_image = draw_info(debug_image, mode, number)
-        cv2.imshow('Hand Pose Games Dataset Maker', debug_image)
+        cv2.imshow("Hand Pose Games Dataset Maker", debug_image)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             cv2.destroyAllWindows()
             break
 
@@ -50,6 +47,5 @@ def main():
     cv2.destroyAllWindows()
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
